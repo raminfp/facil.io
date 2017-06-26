@@ -10,7 +10,7 @@ Here I'll introduce the following:
 
 The facil.io framework contains an optimistic asynchronous Redis client that synchronizes the built in Pub/Sub system with an external Pub/Sub Redis server, allowing facil.io's Pub/Sub to be extended beyond a single machine or process cluster.
 
-The `redis_engine` can be used also to send commands to a Redis server, leveraging the existing Redis "subscribe" client.
+The `redis_engine` can be used to send commands to a Redis server, leveraging the existing Redis "subscribe" client in order to send additional asynchronous commands.
 
 When sending commands, it's important that the client communicate with the Redis server using the RESP protocol.
 
@@ -18,7 +18,7 @@ This entails the creation and destruction of RESP objects to be used as a transl
 
 The reply will be given asynchronously using a callback that will receive a RESP object that can be easily converted into C data.
 
-The following (non-running) example demonstrates just about the whole of the concepts involved in the communication between facil.io and Redis:
+The following (non-running and extra verbose) example demonstrates just about the whole of the concepts involved in the communication between facil.io and Redis:
 
 ```c
 #include "redis_engine.h"
@@ -41,7 +41,7 @@ void send_echo(void) {
   resp_obj2arr(cmd)->array[1] = resp_str2obj("Hello Redis!", 12);
   // We'll send the command, passing a callback that can handle it.
   // We can also pass a `void *` pointer with any data we want.
-  redis_engine_send(MyRedis, resp_object_s *data,
+  redis_engine_send(PUBSUB_DEFAULT_ENGINE, resp_object_s *data,
                              on_redis_echo,(intptr_t)42);
   // unless we keep the data for later use, we need to free the objects
   // this will free the nested objects as well
@@ -102,22 +102,28 @@ Here's a short example that reads data from an `fd` and forwards any messages to
 
 void read_resp(resp_parser_pt parser, int fd, void (*callback)(resp_object_s *)) {
   resp_object_s * msg;
-
   uint8_t buffer[2048];
-  ssize_t limit = read(fd, buffer, 2048);
+  ssize_t limit;
+  size_t i;
 
-  while(limit) {
-    size_t i = limit;
-    msg = resp_parser_feed(parser, buffer, &i);
-    if(i == 0) {
-      // an error occurred, no data was consumed by the parser.
-      exit(-1);
-    }
-    limit -= i;
-    if(msg){
-      if(callback)
-        callback(msg);
-      resp_free_object(msg);
+  while(1) {
+    limit = read(fd, buffer, 2048);
+    if(limit <= 0)
+      return;
+
+    while(limit) {
+      i = limit;
+      msg = resp_parser_feed(parser, buffer, &i);
+      if(i == 0) {
+        // an error occurred, no data was consumed by the parser.
+        exit(-1);
+      }
+      limit -= i;
+      if(msg){
+        if(callback)
+          callback(msg);
+        resp_free_object(msg);
+      }
     }
   }
 }
