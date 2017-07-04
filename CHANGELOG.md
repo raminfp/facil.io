@@ -1,5 +1,21 @@
 # Change Log
 
+### Ver. 0.5.2
+
+**Change**: non-breaking changes to the folder structure are also reflected in the updated `makefile` and `.clang_complete`.
+
+**Fix**: (`defer`) Fixed `SIGTERM` handling (signal was mistakingly filtered away).
+
+**Fix**: (`http_response`) Fixed `http_response_sendfile2` where path concatenation occurred without a folder separator (`/`) and exclusively safe file paths were being ignored (the function assumed an unsafe path to be used, at least in part).
+
+**Fix**: minor fixes and documentation.
+
+**Fix / Feature**: (`facil`) sibling processes will now detect a sibling's death (caused by a crashed process) and shutdown.
+
+**Feature**: @benjcal suggested the script used to create new applications. The current version is a stand-in draft used for testing.
+
+**Feature**: Temporary boiler plate code for a simple "hello world" HTTP application using the new application script (see the README). This is a temporary design to allow us to test the script's functionality and decide on the final boiler plate's design.
+
 ### Ver. 0.5.1
 
 **Fix**: (`sock`) Fixed an issue where `sock_flush` would always invoke `sock_touch`, even if no data was actually sent on the wire.
