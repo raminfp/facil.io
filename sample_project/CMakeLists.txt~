@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.8.9)
+project (facil)
+
+include_directories (${PROJECT_SOURCE_DIR}/lib/facil/core)
+include_directories (${PROJECT_SOURCE_DIR}/lib/facil/http)
+include_directories (${PROJECT_SOURCE_DIR}/lib/facil/redis)
+include_directories (${PROJECT_SOURCE_DIR}/lib/facil/services)
+
+add_executable(facil ${PROJECT_SOURCE_DIR}/src/main.c)
+target_link_libraries (facil core http)
