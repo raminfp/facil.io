@@ -64,3 +64,5 @@ target_include_directories(facil.io
 )
 
 add_executable(facil ${PROJECT_SOURCE_DIR}/src/main.c)
+
+target_link_libraries(facil facil.io)
